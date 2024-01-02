@@ -1,0 +1,81 @@
+Title:               Don't worry about how you're going to Use This Linux
+Likes:               651
+Upload Date:         2024-01-01
+Upload Hour:         00:01:01-08:00
+Length:              17:29
+Length (seconds):    1049
+Description:
+
+In This Video We Are Looking At AgarimOS, It includes a mínimum set of applications so you can build your system on your own.
+
+The are two users:
+anon
+root
+In boot cases the password is voidlinux
+
+Installation: Type sudo void-installer in a terminal.
+
+It includes some useful app like: inxi, bat, topgrade, fzf, bottom, ksuperkey, xmirror, OctoXBPS, hblock, and more.
+
+Wayland session in Gnome is hidden on purpose. It you want to use please edit the file /etc/gdm/custom.conf.
+
+► Subscribe me here :  https://bit.ly/3dI03ff
+► Follow me on Tumblr : https://www.tumblr.com/blog/runboxing
+► Follow me on Twitter : https://twitter.com/9to5Linux_
+► Follow me on Pinterest : https://www.pinterest.com/Runboxing1/
+
+Click Here to Watch More Entertainment :
+► Linux Videos :                         https://bit.ly/2Teia2U
+► Buyer Guide Videos :             https://bit.ly/35cUaTK
+► Raspberry pi Videos :            https://bit.ly/3jgfaxQ
+► Review Videos :                      https://bit.ly/2HeIuYo
+► Mozilla Videos :                      https://bit.ly/2IOi3JG
+► Vpn Videos :                            https://bit.ly/3m3V23B
+► Ipad Videos :                           https://bit.ly/34guh6d
+► Mac Os Videos :                     https://bit.ly/37mPrBx
+
+
+——Subscribe to stay up to date with the channel! ——
+Make sure to subscribe to the channel & select the 🔔bell push notifications (click the 🔔BELL icon next to the subscribe button) to be notified immediately when I release a new video.
+
+✅ BE SURE TO LIKE, SUBSCRIBE, AND TURN ON NOTIFICATIONS!!!
+
+If you watched this video and scrolled to the bottom and are reading this I would love to hear from you.
+
+If you have any questions  give me a shout on social media & I'll try and answer all the questions you might have.
+
+Thanks for watching and I’ll see you next time!
+
+Features
+Systemd free
+Lightweight
+Plasma
+OctoXBPS
+Void Linux
+Customized topgrade
+Catppuccin Mocha style
+Customized starship
+ksuperkey
+Customized fzf
+Useful aliases
+Customized Kvantum Manager
+Customized qt5ct
+Optimized settings
+xtools
+xmirror
+LXQT-KWIN
+XFCE4
+Gnome
+Dracula Style
+Customized WezTerm
+preload
+bottom (similar to htop or btop)
+eza
+bat
+fd
+hblock (blocks ads)
+Customized neofetch
+
+#lxqt  #voidlinux  #linux  #linuxkernel  #linuxdistro  @9to5Linux 
+
+Todays Video - AgarimOS-LXQT-KWIN-Catppuccin!
