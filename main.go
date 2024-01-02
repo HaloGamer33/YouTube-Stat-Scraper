@@ -84,34 +84,78 @@ func main() {
     //     title := strconv.Itoa(index)
     //     os.WriteFile(title + ".txt", []byte(script.Text), 0644)
     // }
-    os.WriteFile(fileTitle, []byte(vidStats.Format()), 0644)
+    err := os.WriteFile(fileTitle, []byte(vidStats.Format()), 0644)
+    if err != nil { panic(err) }
 }
 
 func (v VideoStats) Format() string {
     var s string
+    var keywords string
 
-    length64, err := strconv.ParseInt(v.LengthSeconds, 10, 0)
-    if err != nil { panic(err) }
-
-    lengthMin := SecondsToMinutes(int(length64))
+    lengthMinutes := SecondsToMinutes(v.LengthSeconds)
+    if len(v.Keywords) == 0 {
+        keywords = "none"
+    } else {
+        for _, keyword := range v.Keywords {
+            keywords += fmt.Sprintf("%v, ", keyword)
+        }
+        keywords = keywords[:len(keywords)-2]
+    }
 
     s += fmt.Sprintf("%-20v %v\n", "Title:", v.Title)
+    s += fmt.Sprintf("%-20v %v\n", "View Count:", v.ViewCount)
     s += fmt.Sprintf("%-20v %v\n", "Likes:", v.Likes)
     s += fmt.Sprintf("%-20v %v\n", "Upload Date:", v.UploadDate)
     s += fmt.Sprintf("%-20v %v\n", "Upload Hour:", v.UploadHour)
-    s += fmt.Sprintf("%-20v %v\n", "Length:", lengthMin)
+    s += fmt.Sprintf("%-20v %v\n", "Length:", lengthMinutes)
     s += fmt.Sprintf("%-20v %v\n", "Length (seconds):", v.LengthSeconds)
+    s += fmt.Sprintf("%-20v %v\n", "Author:", v.Author)
+    s += fmt.Sprintf("%-20v %v\n", "Video ID:", v.VideoID)
+    s += fmt.Sprintf("%-20v %v\n", "Channel ID:", v.ChannelID)
+    s += fmt.Sprintf("%-20v %v\n", "Keywords:", keywords)
+    s += fmt.Sprintf("%-20v %v\n", "IsCrawlable:", v.IsCrawlable)
+    s += fmt.Sprintf("%-20v %v\n", "AllowRatings:", v.AllowRatings)
+    s += fmt.Sprintf("%-20v %v\n", "IsPrivate:", v.IsPrivate)
+    s += fmt.Sprintf("%-20v %v\n", "IsLiveContent:", v.IsLiveContent)
     s += fmt.Sprintf("Description:\n\n%v", v.Description)
     return s
 }
 
+type VideoStats struct {
+    Title string
+    ViewCount int
+    Likes int
+    UploadDate string
+    UploadHour string
+    VideoID  string  
+    LengthSeconds int
+    Keywords []string 
+    ChannelID string 
+    Description string 
+    IsCrawlable bool 
+    AllowRatings bool 
+    Author string 
+    IsPrivate bool 
+    IsLiveContent bool 
+}
 
 func NewVideoStats() VideoStats {
     vidStats := VideoStats{
         Title: "",
+        ViewCount: 0,
         Likes: 0,
         UploadDate: "",
         UploadHour: "",
+        LengthSeconds: 0,
+        Description: "",
+        Author: "",
+        VideoID:  "",
+        ChannelID: "",
+        Keywords: []string{},
+        IsCrawlable: false,
+        AllowRatings: false,
+        IsPrivate: false,
+        IsLiveContent: false, 
     }
 
     return vidStats
@@ -148,36 +192,23 @@ func ExtractLikes(str string) string {
 }
 
 func (vidStats *VideoStats) TransferJson(json VideoJson) {
+    secs, err := strconv.ParseInt(json.VideoDetails.ViewCount, 10, 0)
+    if err != nil { panic(err) }
+    views, err := strconv.ParseInt(json.VideoDetails.ViewCount, 10, 0)
+    if err != nil { panic(err) }
+    vidStats.ViewCount = int(views)
+    vidStats.LengthSeconds = int(secs)
     vidStats.VideoID = json.VideoDetails.VideoID
-    vidStats.LengthSeconds = json.VideoDetails.LengthSeconds
     vidStats.Keywords = json.VideoDetails.Keywords
     vidStats.ChannelID = json.VideoDetails.ChannelID
     vidStats.Description = json.VideoDetails.Description
     vidStats.IsCrawlable = json.VideoDetails.IsCrawlable
     vidStats.AllowRatings = json.VideoDetails.AllowRatings
-    vidStats.ViewCount = json.VideoDetails.ViewCount
     vidStats.Author = json.VideoDetails.Author
     vidStats.IsPrivate = json.VideoDetails.IsPrivate
     vidStats.IsLiveContent = json.VideoDetails.IsLiveContent
 }
 
-type VideoStats struct {
-    Title string
-    Likes int
-    UploadDate string
-    UploadHour string
-    VideoID  string  
-    LengthSeconds string 
-    Keywords []string 
-    ChannelID string 
-    Description string 
-    IsCrawlable bool 
-    AllowRatings bool 
-    ViewCount string 
-    Author string 
-    IsPrivate bool 
-    IsLiveContent bool 
-}
 
 type VideoJson struct {
     VideoDetails struct {
