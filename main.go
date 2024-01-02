@@ -15,7 +15,7 @@ func main() {
     collector := colly.NewCollector()
     collector.OnRequest(
         func (request *colly.Request) {
-            fmt.Println("Visiting ", request.URL.String())
+            fmt.Println("Visiting", request.URL.String())
         },
     )
     collector.OnHTML("meta[name=title]",
@@ -71,7 +71,11 @@ func main() {
         // err := os.WriteFile("output.html", response.Body, 0644)
         // if err != nil { panic(err) }
     })
-    collector.Visit("https://www.youtube.com/watch?v=68RvXF8b8qI")
+
+    var link string
+    fmt.Println("Insert the video link: ")
+    fmt.Scanln(&link)
+    collector.Visit(link)
 
     vidStats.Json = vidJson
 
