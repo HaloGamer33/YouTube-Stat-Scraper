@@ -77,7 +77,7 @@ func main() {
     fmt.Scanln(&link)
     collector.Visit(link)
 
-    vidStats.Json = vidJson
+    vidStats.TransferJson(vidJson)
 
     fileTitle := fmt.Sprintf("%v - Stadistics.txt", vidStats.Title)
     // for index, script := range scripts {
@@ -90,7 +90,7 @@ func main() {
 func (v VideoStats) Format() string {
     var s string
 
-    length64, err := strconv.ParseInt(v.Json.VideoDetails.LengthSeconds, 10, 0)
+    length64, err := strconv.ParseInt(v.LengthSeconds, 10, 0)
     if err != nil { panic(err) }
 
     lengthMin := SecondsToMinutes(int(length64))
@@ -100,8 +100,8 @@ func (v VideoStats) Format() string {
     s += fmt.Sprintf("%-20v %v\n", "Upload Date:", v.UploadDate)
     s += fmt.Sprintf("%-20v %v\n", "Upload Hour:", v.UploadHour)
     s += fmt.Sprintf("%-20v %v\n", "Length:", lengthMin)
-    s += fmt.Sprintf("%-20v %v\n", "Length (seconds):", v.Json.VideoDetails.LengthSeconds)
-    s += fmt.Sprintf("Description:\n\n%v", v.Json.VideoDetails.Description)
+    s += fmt.Sprintf("%-20v %v\n", "Length (seconds):", v.LengthSeconds)
+    s += fmt.Sprintf("Description:\n\n%v", v.Description)
     return s
 }
 
@@ -112,8 +112,6 @@ func NewVideoStats() VideoStats {
         Likes: 0,
         UploadDate: "",
         UploadHour: "",
-        Json: VideoJson{
-        },
     }
 
     return vidStats
@@ -149,13 +147,36 @@ func ExtractLikes(str string) string {
     return likes
 }
 
+func (vidStats *VideoStats) TransferJson(json VideoJson) {
+    vidStats.VideoID = json.VideoDetails.VideoID
+    vidStats.LengthSeconds = json.VideoDetails.LengthSeconds
+    vidStats.Keywords = json.VideoDetails.Keywords
+    vidStats.ChannelID = json.VideoDetails.ChannelID
+    vidStats.Description = json.VideoDetails.Description
+    vidStats.IsCrawlable = json.VideoDetails.IsCrawlable
+    vidStats.AllowRatings = json.VideoDetails.AllowRatings
+    vidStats.ViewCount = json.VideoDetails.ViewCount
+    vidStats.Author = json.VideoDetails.Author
+    vidStats.IsPrivate = json.VideoDetails.IsPrivate
+    vidStats.IsLiveContent = json.VideoDetails.IsLiveContent
+}
+
 type VideoStats struct {
     Title string
     Likes int
     UploadDate string
     UploadHour string
-
-    Json VideoJson
+    VideoID  string  
+    LengthSeconds string 
+    Keywords []string 
+    ChannelID string 
+    Description string 
+    IsCrawlable bool 
+    AllowRatings bool 
+    ViewCount string 
+    Author string 
+    IsPrivate bool 
+    IsLiveContent bool 
 }
 
 type VideoJson struct {
@@ -175,38 +196,5 @@ type VideoJson struct {
     } `json:"videoDetails"`
 }
 
-type MyJSON struct {
-	Contents struct {
-		TwoColumnWatchNextResults struct {
-			Results struct {
-				Results struct {
-					Contents []struct {
-						VideoPrimaryInfoRenderer struct {
-							VideoActions struct {
-								MenuRenderer struct {
-									TopLevelButtons []struct {
-										SegmentedLikeDislikeButtonViewModel struct {
-											LikeButtonViewModel struct {
-												LikeButtonViewModel struct {
-													ToggleButtonViewModel struct {
-														ToggleButtonViewModel struct {
-															DefaultButtonViewModel struct {
-																ButtonViewModel struct {
-																	AccessibilityText string `json:"accessibilityText"`
-																} `json:"buttonViewModel"`
-															} `json:"defaultButtonViewModel"`
-														} `json:"toggleButtonViewModel"`
-													} `json:"toggleButtonViewModel"`
-												} `json:"likeButtonViewModel"`
-											} `json:"likeButtonViewModel"`
-										} `json:"segmentedLikeDislikeButtonViewModel"`
-									} `json:"topLevelButtons"`
-								} `json:"menuRenderer"`
-							} `json:"videoActions"`
-						} `json:"videoPrimaryInfoRenderer"`
-					} `json:"contents"`
-				} `json:"results"`
-			} `json:"results"`
-		} `json:"twoColumnWatchNextResults"`
-	} `json:"contents"`
-}
+// not sure if there is a better way to access the json, but this works
+type MyJSON struct { Contents struct { TwoColumnWatchNextResults struct { Results struct { Results struct { Contents []struct { VideoPrimaryInfoRenderer struct { VideoActions struct { MenuRenderer struct { TopLevelButtons []struct { SegmentedLikeDislikeButtonViewModel struct { LikeButtonViewModel struct { LikeButtonViewModel struct { ToggleButtonViewModel struct { ToggleButtonViewModel struct { DefaultButtonViewModel struct { ButtonViewModel struct { AccessibilityText string `json:"accessibilityText"` } `json:"buttonViewModel"` } `json:"defaultButtonViewModel"` } `json:"toggleButtonViewModel"` } `json:"toggleButtonViewModel"` } `json:"likeButtonViewModel"` } `json:"likeButtonViewModel"` } `json:"segmentedLikeDislikeButtonViewModel"` } `json:"topLevelButtons"` } `json:"menuRenderer"` } `json:"videoActions"` } `json:"videoPrimaryInfoRenderer"` } `json:"contents"` } `json:"results"` } `json:"results"` } `json:"twoColumnWatchNextResults"` } `json:"contents"` }
