@@ -87,14 +87,16 @@ func main() {
     // }
 
     if OnWindows() == true {
-        fileTitle = ReplaceIllegalChars(fileTitle)
+        fileTitle = ReplaceIllegalCharsWindows(fileTitle)
+    } else {
+        fileTitle = strings.ReplaceAll(fileTitle, "/", "")
     }
 
     err := os.WriteFile(fileTitle, []byte(vidStats.Format()), 0644)
     if err != nil { panic(err) }
 }
 
-func ReplaceIllegalChars(str string) string {
+func ReplaceIllegalCharsWindows(str string) string {
     chars := []string{ "<", ">", ":", "\"", "\\", "/", "|", "?", "*" }
     for _, char := range chars {
         str = strings.ReplaceAll(str, char, "")
