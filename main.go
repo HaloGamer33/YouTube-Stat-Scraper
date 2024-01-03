@@ -7,6 +7,7 @@ import (
     "os"
     "encoding/json"
     "strings"
+    "runtime"
 )
 
 func main() { 
@@ -84,8 +85,26 @@ func main() {
     //     title := strconv.Itoa(index)
     //     os.WriteFile(title + ".txt", []byte(script.Text), 0644)
     // }
+
+    if OnWindows() == true {
+        fileTitle = ReplaceIllegalChars(fileTitle)
+    }
+
     err := os.WriteFile(fileTitle, []byte(vidStats.Format()), 0644)
     if err != nil { panic(err) }
+}
+
+func ReplaceIllegalChars(str string) string {
+    chars := []string{ "<", ">", ":", "\"", "\\", "/", "|", "?", "*" }
+    for _, char := range chars {
+        str = strings.ReplaceAll(str, char, "")
+    }
+    return str
+}
+
+func OnWindows() bool {
+    if runtime.GOOS == "windows" { return true }
+    return false
 }
 
 func (v VideoStats) Format() string {
