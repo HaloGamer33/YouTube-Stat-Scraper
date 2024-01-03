@@ -1,4 +1,4 @@
-# YouTube-Stat-Scrapper
+# YouTube-Stat-Scraper
 
 ![Static Badge](https://img.shields.io/badge/Made%20With-Go-blue?style=flat-square&logo=Go&logoColor=white) ![Static Badge](https://img.shields.io/badge/Made%20By-HaloGamer33-white?style=flat-square&label=Made%20by%20&color=%23e12a56) ![GitHub repo size](https://img.shields.io/github/repo-size/HaloGamer33/YouTube-Stat-Scrapper?style=flat-square&label=Size&color=success)
 
