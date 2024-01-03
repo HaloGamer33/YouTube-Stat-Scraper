@@ -192,7 +192,7 @@ func ExtractLikes(str string) string {
 }
 
 func (vidStats *VideoStats) TransferJson(json VideoJson) {
-    secs, err := strconv.ParseInt(json.VideoDetails.ViewCount, 10, 0)
+    secs, err := strconv.ParseInt(json.VideoDetails.LengthSeconds, 10, 0)
     if err != nil { panic(err) }
     views, err := strconv.ParseInt(json.VideoDetails.ViewCount, 10, 0)
     if err != nil { panic(err) }
