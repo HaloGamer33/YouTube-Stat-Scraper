@@ -8,7 +8,7 @@ Go application that collects & downloads information about a YouTube video. It u
 
 - Download description, title, view count, likes, upload date, author, video and channel ID, etc.
 - (Coming soon) Download information & stadistics for all videos of a channel.
-- (Coming soon) Bulk download information of multiple videos.
+- Bulk download information of multiple videos.
 
 ## Usage
 
