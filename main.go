@@ -37,7 +37,7 @@ func main() {
     )
     // Searching and processing <script> elements that contain important json
     var vidJson VideoJson
-    var scriptCounter int = 0
+    var scriptCounter int
     collector.OnHTML("script",
         func (element *colly.HTMLElement) {
             if scriptCounter == 20 {
@@ -64,11 +64,58 @@ func main() {
             scriptCounter++
         },
     )
-    var link string
-    fmt.Println("Insert the video link: ")
-    fmt.Scanln(&link)
+    //  ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+    //  ╎ User Input Start ╎
+    //  └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+    var selection string
+    PrintMenu()
+    fmt.Scanln(&selection)
+    switch selection {
+    case "1":
+        fmt.Println("Insert the link:")
+        fmt.Scanln(&selection)
+        ScrapeSingleVideo(selection, &vidStats, &vidJson, collector)
+    case "2":
+        fmt.Println("Name of the .txt file containing the links:")
+        fmt.Scanln(&selection)
+        fileContents, err := os.ReadFile(selection)
+        stringContents := string(fileContents)
+        links := strings.Split(stringContents, "\n")
+        if err != nil { panic(err) }
+        ScrapeVideos(links, &vidStats, &vidJson, collector, &scriptCounter)
+    case "3":
+        fmt.Println("Coming Soon!")
+    }
+}
+
+/*
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+            ╎ Function & Struct Declaration Beggining ╎
+            └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+*/
+
+func ScrapeVideos(links []string, vidStats *VideoStats, vidJson *VideoJson, collector *colly.Collector, scriptCounter *int) {
+    for _, link := range links {
+        *scriptCounter = 0
+        collector.Visit(link)
+        vidStats.TransferJson(*vidJson)
+
+        fileTitle := fmt.Sprintf("%v - Stadistics.txt", vidStats.Title)
+        if OnWindows() == true {
+            fileTitle = ReplaceIllegalCharsWindows(fileTitle)
+        } else {
+            fileTitle = strings.ReplaceAll(fileTitle, "/", "")
+        }
+        err := os.WriteFile(fileTitle, []byte(vidStats.Format()), 0644)
+        if err != nil { panic(err) }
+    }
+}
+
+func ScrapeSingleVideo(link string, vidStats *VideoStats, vidJson *VideoJson, collector *colly.Collector) {
     collector.Visit(link)
-    vidStats.TransferJson(vidJson)
+    vidStats.TransferJson(*vidJson)
 
     fileTitle := fmt.Sprintf("%v - Stadistics.txt", vidStats.Title)
     if OnWindows() == true {
@@ -80,13 +127,13 @@ func main() {
     if err != nil { panic(err) }
 }
 
-/*
-     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
-            ╎ Function & Struct Declaration Beggining ╎
-            └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
-     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-*/
+func PrintMenu() {
+    var menu string
+    menu += fmt.Sprintf("1. To insert YouTube link.\n")
+    menu += fmt.Sprintf("2. To bulk scrape multiple videos. (external .txt file)\n")
+    menu += fmt.Sprintf("3. To scrape information & stadistics for all videos of a channel.\n")
+    fmt.Println(menu)
+}
 
 func ReplaceIllegalCharsWindows(str string) string {
     chars := []string{ "<", ">", ":", "\"", "\\", "/", "|", "?", "*" }
