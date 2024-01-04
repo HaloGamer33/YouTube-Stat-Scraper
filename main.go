@@ -8,6 +8,8 @@ import (
     "encoding/json"
     "strings"
     "runtime"
+    "net/http"
+    "io"
 )
 
 func main() { 
@@ -22,6 +24,13 @@ func main() {
             fmt.Println("Visiting", request.URL.String())
         },
     )
+    // collector.OnHTML("html",
+    //     func (element *colly.HTMLElement) {
+    //         string, err := element.DOM.Html()
+    //         err = os.WriteFile("output.html", []byte(string), 0644)
+    //         if err != nil { panic(err) }
+    //     },
+    // )
     collector.OnHTML("meta[name=title]",
         func (element *colly.HTMLElement) {
             vidStats.Title = element.Attr("content")
@@ -61,6 +70,29 @@ func main() {
                 likes := ExtractLikes(likesStr)
                 vidStats.Likes = int(likes)
             }
+            if scriptCounter == 45 {
+                // Removing js from the json
+                var indexJsonStart int = strings.Index(element.Text, "{")
+                var jsonStr string = element.Text[indexJsonStart:len(element.Text)-1]
+
+                var continueTokenJson ContinueTokenJson
+                err := json.Unmarshal([]byte(jsonStr), &continueTokenJson)
+                if err != nil { panic(err) }
+
+                token := GetContinuationToken(continueTokenJson)
+                continuationJson := PageLoadContinuation(token)
+
+                var commentCounterJson CommentCounterJson
+                err = json.Unmarshal([]byte(continuationJson), &commentCounterJson)
+                noCommentsStr := GetCommentCounter(commentCounterJson)
+                noCommentsStr = strings.ReplaceAll(noCommentsStr, ",", "")
+                comments, err := strconv.ParseInt(noCommentsStr, 10, 0)
+                if err != nil { panic(err) }
+
+                vidStats.Comments = int(comments)
+            }
+            title := fmt.Sprintf("scripts/%v.txt", scriptCounter)
+            os.WriteFile(title, []byte(element.Text), 0644)
             scriptCounter++
         },
     )
@@ -95,6 +127,38 @@ func main() {
             └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 */
+
+func PageLoadContinuation(token string) string {
+    link := "https://www.youtube.com/youtubei/v1/next?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false"
+    method := "POST"
+
+    json := `
+    {
+        "context": {
+            "client": {
+                "clientName": "WEB",
+                "clientVersion": "2.20240101.07.00"
+            }
+        },
+        "continuation": "%v"
+    }`
+
+    json = fmt.Sprintf(json, token)
+    payload := strings.NewReader(json)
+
+    client := &http.Client {}
+    request, err := http.NewRequest(method, link, payload)
+    if err != nil { panic(err) }
+    request.Header.Add("Content-Type", "application/json")
+
+    response, err := client.Do(request)
+    if err != nil { panic(err) }
+    defer response.Body.Close()
+
+    body, err := io.ReadAll(response.Body)
+    if err != nil { panic(err) }
+    return string(body)
+}
 
 func ScrapeVideos(links []string, vidStats *VideoStats, vidJson *VideoJson, collector *colly.Collector, scriptCounter *int) {
     for _, link := range links {
@@ -194,6 +258,7 @@ type VideoStats struct {
     Title string
     ViewCount int
     Likes int
+    Comments int
     UploadDate string
     UploadHour string
     VideoID  string  
@@ -229,6 +294,7 @@ func NewVideoStats() VideoStats {
     return vidStats
 }
 
+// Formating the contents of the VideoStats struct into a human readable format.
 func (v VideoStats) Format() string {
     var s string
     var keywords string
@@ -246,6 +312,7 @@ func (v VideoStats) Format() string {
     s += fmt.Sprintf("%-20v %v\n", "Title:", v.Title)
     s += fmt.Sprintf("%-20v %v\n", "View Count:", v.ViewCount)
     s += fmt.Sprintf("%-20v %v\n", "Likes:", v.Likes)
+    s += fmt.Sprintf("%-20v %v\n", "Comments:", v.Comments)
     s += fmt.Sprintf("%-20v %v\n", "Upload Date:", v.UploadDate)
     s += fmt.Sprintf("%-20v %v\n", "Upload Hour:", v.UploadHour)
     s += fmt.Sprintf("%-20v %v\n", "Length:", lengthMinutes)
@@ -287,7 +354,13 @@ func (vidStats *VideoStats) TransferJson(json VideoJson) {
 
 // Function that gets the number of likes from the json, makes the code look cleaner. (the json is massive as you can see)
 func GetLikesStr(likesJson LikesJson) string {
-    likesStr := likesJson.Contents.TwoColumnWatchNextResults.Results.Results.Contents[0].VideoPrimaryInfoRenderer.VideoActions.MenuRenderer.TopLevelButtons[0].SegmentedLikeDislikeButtonViewModel.LikeButtonViewModel.LikeButtonViewModel.ToggleButtonViewModel.ToggleButtonViewModel.DefaultButtonViewModel.ButtonViewModel.AccessibilityText
-    return likesStr
+    return likesJson.Contents.TwoColumnWatchNextResults.Results.Results.Contents[0].VideoPrimaryInfoRenderer.VideoActions.MenuRenderer.TopLevelButtons[0].SegmentedLikeDislikeButtonViewModel.LikeButtonViewModel.LikeButtonViewModel.ToggleButtonViewModel.ToggleButtonViewModel.DefaultButtonViewModel.ButtonViewModel.AccessibilityText
 }
 
+func GetContinuationToken(continueTokenJson ContinueTokenJson) string {
+    return continueTokenJson.Contents.TwoColumnWatchNextResults.Results.Results.Contents[3].ItemSectionRenderer.Contents[0].ContinuationItemRenderer.ContinuationEndpoint.ContinuationCommand.Token
+}
+
+func GetCommentCounter(commentCounterJson CommentCounterJson) string {
+    return commentCounterJson.OnResponseReceivedEndpoints[0].ReloadContinuationItemsCommand.ContinuationItems[0].CommentsHeaderRenderer.CountText.Runs[0].Text
+}
