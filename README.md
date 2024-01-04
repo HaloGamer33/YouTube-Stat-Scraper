@@ -1,6 +1,6 @@
 # YouTube-Stat-Scraper
 
-![Static Badge](https://img.shields.io/badge/Made%20With-Go-blue?style=flat-square&logo=Go&logoColor=white) ![Static Badge](https://img.shields.io/badge/Made%20By-HaloGamer33-white?style=flat-square&label=Made%20by%20&color=%23e12a56) ![GitHub repo size](https://img.shields.io/github/repo-size/HaloGamer33/YouTube-Stat-Scrapper?style=flat-square&label=Size&color=success)
+![Static Badge](https://img.shields.io/badge/Made%20With-Go-blue?style=flat-square&logo=Go&logoColor=white) ![Static Badge](https://img.shields.io/badge/Made%20By-HaloGamer33-white?style=flat-square&label=Made%20by%20&color=%23e12a56) ![GitHub repo size](https://img.shields.io/github/repo-size/HaloGamer33/YouTube-Stat-Scrapper?style=flat-square&label=Size&color=success) ![GitHub release (with filter)](https://img.shields.io/github/v/release/HaloGamer33/YouTube-Stat-Scraper?style=flat-square&label=Release&color=%23ed9b37)
 
 Go application that collects & downloads information about a YouTube video. It uses the Colly library to scrape data from the video's webpage and parses JSON data embedded in the page's HTML.
 
