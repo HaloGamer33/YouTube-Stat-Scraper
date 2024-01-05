@@ -1,4 +1,59 @@
 package main
+
+type ContinuationVideosJson struct {
+    OnResponseReceivedActions []struct {
+        AppendContinuationItemsAction struct {
+            ContinuationItems []struct {
+                RichItemRenderer struct {
+                    Content struct {
+                        VideoRenderer struct {
+                            VideoId string `json:"videoId"`
+                        } `json:"videoRenderer"`
+                    } `json:"content"`
+                } `json:"richItemRenderer"`
+                ContinuationItemRenderer struct {
+                    ContinuationEndpoint struct {
+                        ContinuationCommand struct {
+                            Token string `json:"token"`
+                        } `json:"continuationCommand"`
+                    } `json:"continuationEndpoint"`
+                } `json:"continuationItemRenderer"`
+            } `json:"continuationItems"`
+        } `json:"appendContinuationItemsAction"`
+    } `json:"onResponseReceivedActions"`
+}
+
+type ChannelVideosJson struct {
+    Contents struct {
+        TwoColumnBrowseResultsRenderer struct {
+            Tabs []struct {
+                TabRenderer struct {
+                    Content struct {
+                        RichGridRenderer struct {
+                            Contents []struct {
+                                RichItemRenderer struct {
+                                    Content struct {
+                                        VideoRenderer struct {
+                                            VideoId string `json:"videoId"`
+                                        } `json:"videoRenderer"`
+                                    } `json:"content"`
+                                } `json:"richItemRenderer"`
+                                ContinuationItemRenderer struct {
+                                    ContinuationEndpoint struct {
+                                        ContinuationCommand struct {
+                                            Token string `json:"token"`
+                                        } `json:"continuationCommand"`
+                                    } `json:"continuationEndpoint"`
+                                } `json:"continuationItemRenderer"`
+                            } `json:"contents"`
+                        } `json:"richGridRenderer"`
+                    } `json:"content"`
+                } `json:"tabRenderer"`
+            } `json:"tabs"`
+        } `json:"twoColumnBrowseResultsRenderer"`
+    } `json:"contents"`
+}
+
 type CommentCounterJson struct {
     OnResponseReceivedEndpoints []struct {
         ReloadContinuationItemsCommand struct {

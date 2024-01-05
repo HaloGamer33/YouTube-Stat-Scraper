@@ -116,7 +116,39 @@ func main() {
         if err != nil { panic(err) }
         ScrapeVideos(links, &vidStats, &vidJson, collector, &scriptCounter)
     case "3":
-        fmt.Println("Coming Soon!")
+        fmt.Println("@ of the channel: ")
+        fmt.Scanln(&selection)
+
+        channelLink := fmt.Sprintf("https://www.youtube.com/%v/videos", selection)
+
+        links, token := ScrapeChannel(channelLink)
+
+        if token == "" {
+            ScrapeVideos(links, &vidStats, &vidJson, collector, &scriptCounter)
+        } else {
+            for token != "" {
+                continuationVideosJsonStr := PageLoadChannelVideoContinuation(token)
+                var continuationVideosJson ContinuationVideosJson
+                err := json.Unmarshal([]byte(continuationVideosJsonStr), &continuationVideosJson)
+                if err != nil { panic(err) }
+
+                items := continuationVideosJson.OnResponseReceivedActions[0].AppendContinuationItemsAction.ContinuationItems
+
+                for index, item := range items {
+                    if index == len(items) - 1 {
+                        token = item.ContinuationItemRenderer.ContinuationEndpoint.ContinuationCommand.Token
+                        if token != "" { continue }
+                    }
+
+                    id := &item.RichItemRenderer.Content.VideoRenderer.VideoId
+                    link := fmt.Sprintf("https://www.youtube.com/watch?v=%v", *id)
+                    links = append(links, link)
+                }
+            }
+
+            folderName := fmt.Sprintf("%v - Channel Video Stats", selection)
+            ScrapeVideosIntoFolder(links, folderName, &vidStats, &vidJson, collector, &scriptCounter)
+        }
     }
 }
 
@@ -127,6 +159,81 @@ func main() {
             └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 */
+func ScrapeChannel(channelLink string) ([]string, string) {
+    channelScriptCounter := 0
+    links := []string{}
+    continuationToken := ""
+
+    collector := colly.NewCollector()
+    collector.OnHTML("script",
+        func (element *colly.HTMLElement) {
+            path := fmt.Sprintf("channelScripts/%v", channelScriptCounter)
+            os.WriteFile(path, []byte(element.Text), 0644)
+
+            if channelScriptCounter == 36 {
+                // Removing js from the json
+                var indexJsonStart int = strings.Index(element.Text, "{")
+                var jsonStr string = element.Text[indexJsonStart:len(element.Text)-1]
+
+                var channelVideosJson ChannelVideosJson
+                err := json.Unmarshal([]byte(jsonStr), &channelVideosJson)
+                if err != nil { panic(err) }
+
+                loadedContent := channelVideosJson.Contents.TwoColumnBrowseResultsRenderer.Tabs[1].TabRenderer.Content.RichGridRenderer.Contents
+                for index, content := range loadedContent {
+                    if index == len(loadedContent) - 1 {
+                        continuationToken = content.ContinuationItemRenderer.ContinuationEndpoint.ContinuationCommand.Token
+                        continue
+                    }
+                    links = append(links, content.RichItemRenderer.Content.VideoRenderer.VideoId)
+                }
+
+            }
+            channelScriptCounter++
+        },
+    )
+    collector.Visit(channelLink)
+
+    var fullLinks []string
+    for _, link := range links {
+        link = fmt.Sprintf("https://www.youtube.com/watch?v=%v", link)
+        fullLinks = append(fullLinks, link)
+    }
+
+    return fullLinks, continuationToken
+}
+
+func PageLoadChannelVideoContinuation(token string) string {
+    link := "https://www.youtube.com/youtubei/v1/browse?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false"
+    method := "POST"
+
+    json := `
+    {
+        "context": {
+            "client": {
+                "clientName": "WEB",
+                "clientVersion": "2.20240101.07.00"
+            }
+        },
+        "continuation": "%v"
+    }`
+
+    json = fmt.Sprintf(json, token)
+    payload := strings.NewReader(json)
+
+    client := &http.Client {}
+    request, err := http.NewRequest(method, link, payload)
+    if err != nil { panic(err) }
+    request.Header.Add("Content-Type", "application/json")
+
+    response, err := client.Do(request)
+    if err != nil { panic(err) }
+    defer response.Body.Close()
+
+    body, err := io.ReadAll(response.Body)
+    if err != nil { panic(err) }
+    return string(body)
+}
 
 func PageLoadContinuation(token string) string {
     link := "https://www.youtube.com/youtubei/v1/next?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false"
@@ -158,6 +265,26 @@ func PageLoadContinuation(token string) string {
     body, err := io.ReadAll(response.Body)
     if err != nil { panic(err) }
     return string(body)
+}
+
+
+func ScrapeVideosIntoFolder(links []string, folderName string, vidStats *VideoStats, vidJson *VideoJson, collector *colly.Collector, scriptCounter *int) {
+    for _, link := range links {
+        *scriptCounter = 0
+        collector.Visit(link)
+        vidStats.TransferJson(*vidJson)
+
+        fileTitle := fmt.Sprintf("%v - Stadistics.txt", vidStats.Title)
+        if OnWindows() == true {
+            fileTitle = ReplaceIllegalCharsWindows(fileTitle)
+        } else {
+            fileTitle = strings.ReplaceAll(fileTitle, "/", "")
+        }
+        err := os.MkdirAll(folderName, os.ModePerm)
+        if err != nil { panic(err) }
+        err = os.WriteFile(folderName + "/" + fileTitle, []byte(vidStats.Format()), 0644)
+        if err != nil { panic(err) }
+    }
 }
 
 func ScrapeVideos(links []string, vidStats *VideoStats, vidJson *VideoJson, collector *colly.Collector, scriptCounter *int) {
