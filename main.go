@@ -49,6 +49,12 @@ func main() {
     var scriptCounter int
     collector.OnHTML("script",
         func (element *colly.HTMLElement) {
+
+            // Writing all scripts for debug
+            title := fmt.Sprintf("scripts/%v.txt", scriptCounter)
+            err := os.WriteFile(title, []byte(element.Text), 0644)
+            if err != nil { panic(err) }
+
             if scriptCounter == 20 {
                 // Removing js from the json
                 var indexJsonStart int = strings.Index(element.Text, "{")
@@ -79,6 +85,8 @@ func main() {
                 err := json.Unmarshal([]byte(jsonStr), &continueTokenJson)
                 if err != nil { panic(err) }
 
+                fmt.Println(continueTokenJson)
+
                 token := GetContinuationToken(continueTokenJson)
                 continuationJson := PageLoadContinuation(token)
 
@@ -91,8 +99,6 @@ func main() {
 
                 vidStats.Comments = int(comments)
             }
-            title := fmt.Sprintf("scripts/%v.txt", scriptCounter)
-            os.WriteFile(title, []byte(element.Text), 0644)
             scriptCounter++
         },
     )
@@ -116,15 +122,21 @@ func main() {
         if err != nil { panic(err) }
         ScrapeVideos(links, &vidStats, &vidJson, collector, &scriptCounter)
     case "3":
-        fmt.Println("@ of the channel: ")
+        fmt.Println("Channel link:")
         fmt.Scanln(&selection)
 
-        channelLink := fmt.Sprintf("https://www.youtube.com/%v/videos", selection)
+        startOfName := strings.Index(selection, "@")
+        channelUsername := selection[startOfName:]
+        endOfName := strings.Index(channelUsername, "/")
+        channelUsername = channelUsername[:endOfName]
+        channelVideosLink := fmt.Sprintf("https://www.youtube.com/%v/videos", channelUsername)
+        folderName := fmt.Sprintf("%v - Channel Video Stats", channelUsername)
 
-        links, token := ScrapeChannel(channelLink)
+
+        links, token := ScrapeChannel(channelVideosLink)
 
         if token == "" {
-            ScrapeVideos(links, &vidStats, &vidJson, collector, &scriptCounter)
+            ScrapeVideosIntoFolder(links, folderName, &vidStats, &vidJson, collector, &scriptCounter)
         } else {
             for token != "" {
                 continuationVideosJsonStr := PageLoadChannelVideoContinuation(token)
@@ -146,7 +158,6 @@ func main() {
                 }
             }
 
-            folderName := fmt.Sprintf("%v - Channel Video Stats", selection)
             ScrapeVideosIntoFolder(links, folderName, &vidStats, &vidJson, collector, &scriptCounter)
         }
     }
