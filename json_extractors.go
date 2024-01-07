@@ -1,5 +1,78 @@
 package main
 
+type CommentCounterJson struct {
+    OnResponseReceivedEndpoints []struct {
+        ReloadContinuationItemsCommand struct {
+            ContinuationItems []struct {
+                CommentsHeaderRenderer struct {
+                    CountText struct {
+                        Runs []struct {
+                            Text string `json:"text"`
+                        } `json:"runs"`
+                    } `json:"countText"`
+                } `json:"commentsHeaderRenderer"`
+            } `json:"continuationItems"`
+        } `json:"reloadContinuationItemsCommand"`
+    } `json:"onResponseReceivedEndpoints"`
+}
+
+type script45Json struct {
+    Contents struct {
+        TwoColumnWatchNextResults struct {
+            Results struct {
+                Results struct {
+                    Contents []struct {
+                        VideoPrimaryInfoRenderer struct { 
+                            VideoActions struct { 
+                                MenuRenderer struct { 
+                                    TopLevelButtons []struct { 
+                                        SegmentedLikeDislikeButtonViewModel struct { 
+                                            LikeButtonViewModel struct { 
+                                                LikeButtonViewModel struct { 
+                                                    ToggleButtonViewModel struct { 
+                                                        ToggleButtonViewModel struct { 
+                                                            DefaultButtonViewModel struct { 
+                                                                ButtonViewModel struct { 
+                                                                    // Extracting string that contains the likes
+                                                                    AccessibilityText string `json:"accessibilityText"` 
+                                                                } `json:"buttonViewModel"` 
+                                                            } `json:"defaultButtonViewModel"` 
+                                                        } `json:"toggleButtonViewModel"` 
+                                                    } `json:"toggleButtonViewModel"` 
+                                                } `json:"likeButtonViewModel"` 
+                                            } `json:"likeButtonViewModel"` 
+                                        } `json:"segmentedLikeDislikeButtonViewModel"` 
+                                    } `json:"topLevelButtons"` 
+                                } `json:"menuRenderer"` 
+                            } `json:"videoActions"` 
+                        } `json:"videoPrimaryInfoRenderer"` 
+                        ItemSectionRenderer struct {
+                            Contents []struct {
+                                ContinuationItemRenderer struct {
+                                    ContinuationEndpoint struct {
+                                        ContinuationCommand struct {
+                                            // Extracting continuation token
+                                            Token string `json:"token"`
+                                        } `json:"continuationCommand"`
+                                    } `json:"continuationEndpoint"`
+                                } `json:"continuationItemRenderer"`
+                                MessageRenderer struct {
+                                    Text struct {
+                                        Runs []struct {
+                                            // Extracting text that says "comments are disabled" if there are no comments
+                                            Text string
+                                        } `json:"runs"`
+                                    } `json:"text"`
+                                } `json:"messageRenderer"`
+                            } `json:"contents"`
+                        } `json:"itemSectionRenderer"`
+                    } `json:"contents"`
+                } `json:"results"`
+            } `json:"results"`
+        } `json:"twoColumnWatchNextResults"`
+    } `json:"contents"`
+}
+
 type ContinuationVideosJson struct {
     OnResponseReceivedActions []struct {
         AppendContinuationItemsAction struct {
@@ -54,45 +127,7 @@ type ChannelVideosJson struct {
     } `json:"contents"`
 }
 
-type CommentCounterJson struct {
-    OnResponseReceivedEndpoints []struct {
-        ReloadContinuationItemsCommand struct {
-            ContinuationItems []struct {
-                CommentsHeaderRenderer struct {
-                    CountText struct {
-                        Runs []struct {
-                            Text string `json:"text"`
-                        } `json:"runs"`
-                    } `json:"countText"`
-                } `json:"commentsHeaderRenderer"`
-            } `json:"continuationItems"`
-        } `json:"reloadContinuationItemsCommand"`
-    } `json:"onResponseReceivedEndpoints"`
-}
 
-type ContinueTokenJson struct {
-    Contents struct { 
-        TwoColumnWatchNextResults struct { 
-            Results struct { 
-                Results struct { 
-                    Contents []struct { 
-                        ItemSectionRenderer struct {
-                            Contents []struct {
-                                ContinuationItemRenderer struct {
-                                    ContinuationEndpoint struct {
-                                        ContinuationCommand struct {
-                                            Token string `json:"token"`
-                                        } `json:"continuationCommand"`
-                                    } `json:"continuationEndpoint"`
-                                } `json:"continuationItemRenderer"`
-                            } `json:"contents"`
-                        } `json:"itemSectionRenderer"`
-                    } `json:"contents"` 
-                } `json:"results"` 
-            } `json:"results"` 
-        } `json:"twoColumnWatchNextResults"` 
-    } `json:"contents"` 
-}
 
 
 type VideoJson struct {
@@ -113,40 +148,4 @@ type VideoJson struct {
     } `json:"videoDetails"`
 }
 
-// not sure if there is a better way to access the json, but this works
-type LikesJson struct { 
-    Contents struct { 
-        TwoColumnWatchNextResults struct { 
-            Results struct { 
-                Results struct { 
-                    Contents []struct { 
-                        VideoPrimaryInfoRenderer struct { 
-                            VideoActions struct { 
-                                MenuRenderer struct { 
-                                    TopLevelButtons []struct { 
-                                        SegmentedLikeDislikeButtonViewModel struct { 
-                                            LikeButtonViewModel struct { 
-                                                LikeButtonViewModel struct { 
-                                                    ToggleButtonViewModel struct { 
-                                                        ToggleButtonViewModel struct { 
-                                                            DefaultButtonViewModel struct { 
-                                                                ButtonViewModel struct { 
-                                                                    AccessibilityText string `json:"accessibilityText"` 
-                                                                } `json:"buttonViewModel"` 
-                                                            } `json:"defaultButtonViewModel"` 
-                                                        } `json:"toggleButtonViewModel"` 
-                                                    } `json:"toggleButtonViewModel"` 
-                                                } `json:"likeButtonViewModel"` 
-                                            } `json:"likeButtonViewModel"` 
-                                        } `json:"segmentedLikeDislikeButtonViewModel"` 
-                                    } `json:"topLevelButtons"` 
-                                } `json:"menuRenderer"` 
-                            } `json:"videoActions"` 
-                        } `json:"videoPrimaryInfoRenderer"` 
-                    } `json:"contents"` 
-                } `json:"results"` 
-            } `json:"results"` 
-        } `json:"twoColumnWatchNextResults"` 
-    } `json:"contents"` 
-}
 
