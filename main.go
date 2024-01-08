@@ -37,35 +37,21 @@ func main() {
         channelVideosLink := fmt.Sprintf("https://www.youtube.com/%v/videos", channelUsername)
         folderName := fmt.Sprintf("%v - Channel Video Stats", channelUsername)
 
-        links, token := scrapeChannel(channelVideosLink)
+        links, token := scrapeChannelVideosPage(channelVideosLink)
 
         if token == "" {
             scrapeVideos(links, folderName)
         } else {
             for token != "" {
-                continuationVideosJsonStr := pageLoadChannelVideoContinuation(token)
-                var continuationVideosJson ContinuationVideosJson
-                err := json.Unmarshal([]byte(continuationVideosJsonStr), &continuationVideosJson)
-                if err != nil { panic(err) }
-
-                items := continuationVideosJson.OnResponseReceivedActions[0].AppendContinuationItemsAction.ContinuationItems
-
-                for index, item := range items {
-                    if index == len(items) - 1 {
-                        token = item.ContinuationItemRenderer.ContinuationEndpoint.ContinuationCommand.Token
-                        if token != "" { continue }
-                    }
-
-                    id := &item.RichItemRenderer.Content.VideoRenderer.VideoId
-                    link := fmt.Sprintf("https://www.youtube.com/watch?v=%v", *id)
-                    links = append(links, link)
-                }
+                var scrapedLinks []string
+                scrapedLinks, token = scrapeUntilEndOfPage(token)
+                links = append(links, scrapedLinks...)
             }
-
             scrapeVideos(links, folderName)
         }
     }
 }
+
 
 /*
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -74,7 +60,31 @@ func main() {
             └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 */
-func scrapeChannel(channelLink string) ([]string, string) {
+
+func scrapeUntilEndOfPage(continuationToken string) ([]string, string) {
+    continuationVideosJsonStr := pageLoadChannelVideoContinuation(continuationToken)
+    var continuationVideosJson ContinuationVideosJson
+    err := json.Unmarshal([]byte(continuationVideosJsonStr), &continuationVideosJson)
+    if err != nil { panic(err) }
+
+    items := continuationVideosJson.OnResponseReceivedActions[0].AppendContinuationItemsAction.ContinuationItems
+
+    var links []string
+    for index, item := range items {
+        if index == len(items) - 1 {
+            continuationToken = item.ContinuationItemRenderer.ContinuationEndpoint.ContinuationCommand.Token
+            if continuationToken != "" { continue }
+        }
+
+        id := &item.RichItemRenderer.Content.VideoRenderer.VideoId
+        link := fmt.Sprintf("https://www.youtube.com/watch?v=%v", *id)
+        links = append(links, link)
+    }
+
+    return links, continuationToken
+}
+
+func scrapeChannelVideosPage(channelLink string) ([]string, string) {
     channelScriptCounter := 0
     links := []string{}
     continuationToken := ""
@@ -87,8 +97,7 @@ func scrapeChannel(channelLink string) ([]string, string) {
 
             if channelScriptCounter == 36 {
                 // Removing js from the json
-                var indexJsonStart int = strings.Index(element.Text, "{")
-                var jsonStr string = element.Text[indexJsonStart:len(element.Text)-1]
+                jsonStr := removeJS(element.Text)
 
                 var channelVideosJson ChannelVideosJson
                 err := json.Unmarshal([]byte(jsonStr), &channelVideosJson)

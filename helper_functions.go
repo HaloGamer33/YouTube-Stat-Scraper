@@ -59,7 +59,6 @@ func processScript45(scriptContents *string, vidStats *VideoStats) {
     if err != nil { panic(err) }
 
     // Getting number of likes
-
     accessibilityText := script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[0].VideoPrimaryInfoRenderer.VideoActions.MenuRenderer.TopLevelButtons[0].SegmentedLikeDislikeButtonViewModel.LikeButtonViewModel.LikeButtonViewModel.ToggleButtonViewModel.ToggleButtonViewModel.DefaultButtonViewModel.ButtonViewModel.AccessibilityText
 
     var likesStr string
@@ -80,24 +79,26 @@ func processScript45(scriptContents *string, vidStats *VideoStats) {
     vidStats.Likes = int(likes)
 
     // Getting number of comments
-
-    disabledCommentsStr := script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[2].ItemSectionRenderer.Contents[0].MessageRenderer.Text.Runs[0].Text
-
-    if disabledCommentsStr != "" {
-        vidStats.Comments = 0
-        return
-    }
-
-    token := script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[3].ItemSectionRenderer.Contents[0].ContinuationItemRenderer.ContinuationEndpoint.ContinuationCommand.Token
-    continuationJson := pageLoadContinuation(token)
-
-    var commentCounterJson CommentCounterJson
-    err = json.Unmarshal([]byte(continuationJson), &commentCounterJson)
-    noCommentsStr := commentCounterJson.OnResponseReceivedEndpoints[0].ReloadContinuationItemsCommand.ContinuationItems[0].CommentsHeaderRenderer.CountText.Runs[0].Text
-    noCommentsStr = strings.ReplaceAll(noCommentsStr, ",", "")
     
-    comments, err := strconv.ParseInt(noCommentsStr, 10, 0)
-    if err != nil { panic(err) }
+    var comments int
+
+    if (len(script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[2].ItemSectionRenderer.Contents[0].MessageRenderer.Text.Runs) != 0 ) {
+        // There is a text displaying "The comments are disabled" thus, no comments.
+        comments = 0
+    } else {
+        token := script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[3].ItemSectionRenderer.Contents[0].ContinuationItemRenderer.ContinuationEndpoint.ContinuationCommand.Token
+        continuationJson := pageLoadContinuation(token)
+
+        var commentCounterJson CommentCounterJson
+        err = json.Unmarshal([]byte(continuationJson), &commentCounterJson)
+        noCommentsStr := commentCounterJson.OnResponseReceivedEndpoints[0].ReloadContinuationItemsCommand.ContinuationItems[0].CommentsHeaderRenderer.CountText.Runs[0].Text
+        noCommentsStr = strings.ReplaceAll(noCommentsStr, ",", "")
+
+        comments64, err := strconv.ParseInt(noCommentsStr, 10, 0)
+        if err != nil { panic(err) }
+
+        comments = int(comments64)
+    }
 
     vidStats.Comments = int(comments)
 }
