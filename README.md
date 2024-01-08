@@ -27,19 +27,3 @@ Go application that collects & downloads information about a YouTube video. It u
 
 - Go
 - Colly
-
-## Code Overview
-
-The main function initializes a new `VideoStats` object and a new Colly collector. It sets up several callbacks on the collector to handle various events such as visiting a URL, finding HTML elements, and receiving a response.
-
-The `VideoStats` struct holds all the collected data about the video. The `Format` method formats this data into a human-readable string.
-
-The `NewVideoStats` function returns a new `VideoStats` object with default values.
-
-The `SecondsToMinutes` function converts a duration from seconds to a string in the format "minutes:seconds".
-
-The `FindFirstInt` and `ExtractLikes` functions are helper functions used to parse the number of likes from a string.
-
-The `TransferJson` method updates a `VideoStats` object with data extracted from a `VideoJson` object.
-
-The `VideoJson` and `MyJSON` types define the structure of the JSON data embedded in the video's webpage.
