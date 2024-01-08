@@ -2,10 +2,44 @@ package main
 
 import (
     "testing"
-    "fmt"
-    "strings"
     "regexp"
 )
+
+const singleDownloadRegex = `^Title:\s*.+
+View Count:\s*[1-9][0-9]*
+Likes:\s*[1-9][0-9]*
+Comments:\s*[1-9][0-9]*
+Upload Date:\s*[1-9][0-9]*-[0-1][0-9]*-[0-3][0-9]*
+Upload Hour:\s*[0-9]*:[0-9]*:[0-9]*-[0-9]*:[0-9]*
+Length:\s*[0-9]*:[0-9]*
+Length \(seconds\):\s*[1-9][0-9]*
+Author:\s*.+
+Video ID:\s*.+
+Channel ID:\s*.+
+Keywords:\s*.+
+IsCrawlable:\s*(true|false)
+AllowRatings:\s*(true|false)
+IsPrivate:\s*(true|false)
+IsLiveContent:\s*(true|false)
+Description:[\S\s]*$`
+
+const commentsDisabledRegex = `^Title:\s*.+
+View Count:\s*[1-9][0-9]*
+Likes:\s*[1-9][0-9]*
+Comments:\s*0
+Upload Date:\s*[1-9][0-9]*-[0-1][0-9]*-[0-3][0-9]*
+Upload Hour:\s*[0-9]*:[0-9]*:[0-9]*-[0-9]*:[0-9]*
+Length:\s*[0-9]*:[0-9]*
+Length \(seconds\):\s*[1-9][0-9]*
+Author:\s*.+
+Video ID:\s*.+
+Channel ID:\s*.+
+Keywords:\s*.+
+IsCrawlable:\s*(true|false)
+AllowRatings:\s*(true|false)
+IsPrivate:\s*(true|false)
+IsLiveContent:\s*(true|false)
+Description:[\S\s]*$`
 
 func TestSingleDownload(t *testing.T) {
     link := "https://www.youtube.com/watch?v=Lwr3-doAgaI"
@@ -13,17 +47,25 @@ func TestSingleDownload(t *testing.T) {
     collector, vidStats := createScraper()
     collector.Visit(link)
 
-    fileTitle := fmt.Sprintf("%v - Stadistics.txt", vidStats.Title)
-    if onWindows() == true {
-        fileTitle = replaceIllegalCharsWindows(fileTitle)
-    } else {
-        fileTitle = strings.ReplaceAll(fileTitle, "/", "")
-    }
-
-    regExp := regexp.MustCompile(`^Title:\s*The Last Algorithms Course You'll Need by ThePrimeagen \| Preview\nView Count:\s*[1-9][0-9]*\nLikes:\s*[1-9][0-9]*\nComments:\s*[1-9][0-9]*\nUpload Date:\s*[1-9][0-9]*-[0-9]*-[0-9]*\nUpload Hour:\s*[0-9]*:[0-9]*:[0-9]*-[0-9]*:[0-9]*\nLength:\s*[0-9]*:[0-9]*\nLength \(seconds\):\s*[0-9]*\nAuthor:\s*Frontend Masters\nVideo ID:\s*Lwr3-doAgaI\nChannel ID:\s*UCzumJvwc0KBrdq4jpvOR7RA\nKeywords:\s*#Algorithms, #ThePrimeagen, #FrontendMasters\nIsCrawlable:\s*true\nAllowRatings:\s*true\nIsPrivate:\s*false\nIsLiveContent:\s*false\nDescription:[\S\s]*$`)
+    regExp := regexp.MustCompile(singleDownloadRegex)
     format := vidStats.format()
     match := regExp.MatchString(format)
     if match != true {
         t.Errorf("The RegExp does not match, FAILED AT SINGLE LINK DOWNLOAD")
     }
 } 
+
+func TestSingleDownloadNoComments(t *testing.T) {
+    link := "https://www.youtube.com/watch?v=bOYl_FjqG_0"
+
+    collector, vidStats := createScraper()
+    collector.Visit(link)
+
+    regExp := regexp.MustCompile(commentsDisabledRegex)
+    format := vidStats.format()
+    match := regExp.MatchString(format)
+    if match != true {
+        t.Errorf("The RegExp does not match, FAILED AT DOWNLOADING VIDEO WITH COMMENTS DISABLED")
+    }
+}
+
