@@ -21,7 +21,7 @@ func main() {
         fmt.Scanln(&selection)
         scrapeSingleVideo(selection)
     case "2":
-        fmt.Println("Name of the .txt file containing the links:")
+        fmt.Println("Name of the .txt file containing the links (include the .txt):")
         fmt.Scanln(&selection)
         fileContents, err := os.ReadFile(selection)
         stringContents := string(fileContents)

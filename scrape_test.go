@@ -3,6 +3,7 @@ package main
 import (
     "testing"
     "regexp"
+    "fmt"
 )
 
 const singleDownloadRegex = `^Title:\s*.+
@@ -69,3 +70,36 @@ func TestSingleDownloadNoComments(t *testing.T) {
     }
 }
 
+func TestChannelScrape(t *testing.T) {
+    channelLink := "https://www.youtube.com/@Bordercollie_5"
+    // https://www.youtube.com/@Bordercollie_5
+    channelUsername := getUsernameFromLink(&channelLink)
+
+    channelVideosLink := fmt.Sprintf("https://www.youtube.com/%v/videos", channelUsername)
+    folderName := fmt.Sprintf("%v - Channel Video Stats", channelUsername)
+
+    links, token := scrapeChannelVideosPage(channelVideosLink)
+
+    if token == "" {
+        scrapeVideos(links, folderName)
+    } else {
+        for token != "" {
+            var scrapedLinks []string
+            scrapedLinks, token = scrapeUntilEndOfPage(token)
+            links = append(links, scrapedLinks...)
+        }
+        scrapeVideos(links, folderName)
+    }
+    //
+    // file, err := os.Open("./@Bordercollie_5 - Channel Video Stats")
+    // if err != nil { panic(err) }
+    //
+    // defer file.Close()
+    //
+    // names, err := file.Readdirnames(0)
+    // if err != nil { panic(err) }
+    //
+    // for _, v := range names {
+    //     fmt.Println(v)
+    // }
+}

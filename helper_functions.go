@@ -59,8 +59,13 @@ func processScript45(scriptContents *string, vidStats *VideoStats) {
     if err != nil { panic(err) }
 
     // Getting number of likes
-    accessibilityText := script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[0].VideoPrimaryInfoRenderer.VideoActions.MenuRenderer.TopLevelButtons[0].SegmentedLikeDislikeButtonViewModel.LikeButtonViewModel.LikeButtonViewModel.ToggleButtonViewModel.ToggleButtonViewModel.DefaultButtonViewModel.ButtonViewModel.AccessibilityText
-
+    var accessibilityText string
+    if 0 == len(script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[0].VideoPrimaryInfoRenderer.VideoActions.MenuRenderer.TopLevelButtons) {
+        accessibilityText = script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[1].VideoPrimaryInfoRenderer.VideoActions.MenuRenderer.TopLevelButtons[0].SegmentedLikeDislikeButtonViewModel.LikeButtonViewModel.LikeButtonViewModel.ToggleButtonViewModel.ToggleButtonViewModel.DefaultButtonViewModel.ButtonViewModel.AccessibilityText
+    } else {
+        accessibilityText = script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[0].VideoPrimaryInfoRenderer.VideoActions.MenuRenderer.TopLevelButtons[0].SegmentedLikeDislikeButtonViewModel.LikeButtonViewModel.LikeButtonViewModel.ToggleButtonViewModel.ToggleButtonViewModel.DefaultButtonViewModel.ButtonViewModel.AccessibilityText
+    }
+    
     var likesStr string
     var likes int
     index := findFirstInt(accessibilityText)
@@ -82,19 +87,49 @@ func processScript45(scriptContents *string, vidStats *VideoStats) {
     
     var comments int
 
-    if (len(script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[2].ItemSectionRenderer.Contents[0].MessageRenderer.Text.Runs) != 0 ) {
+    /* If this is empty it means that the json that contains the number of comments has been moved one 
+       index in the positive direction, this also applies for the token json.
+       It applies to videos that have a notice, for example a covid-19 notice. */ 
+    secondaryInfoRendererChecker := script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[2].ItemSectionRenderer.Contents
+    var secondaryInfo bool
+    var commentsDisabledChecker int
+    var commentsDisabled bool
+    var token string
+
+    if len(secondaryInfoRendererChecker) == 0 {
+        secondaryInfo = true
+    }
+
+    if secondaryInfo == true {
+        commentsDisabledChecker = len(script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[3].ItemSectionRenderer.Contents[0].MessageRenderer.Text.Runs)
+    } else {
+        commentsDisabledChecker = len(script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[2].ItemSectionRenderer.Contents[0].MessageRenderer.Text.Runs)
+    }
+
+    if commentsDisabledChecker != 0 {
+        commentsDisabled = true
+    } else {
+        commentsDisabled = false
+    }
+
+    if commentsDisabled == true {
         // There is a text displaying "The comments are disabled" thus, no comments.
         comments = 0
     } else {
-        token := script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[3].ItemSectionRenderer.Contents[0].ContinuationItemRenderer.ContinuationEndpoint.ContinuationCommand.Token
+        if secondaryInfo == true {
+            token = script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[4].ItemSectionRenderer.Contents[0].ContinuationItemRenderer.ContinuationEndpoint.ContinuationCommand.Token
+        } else {
+            token = script45.Contents.TwoColumnWatchNextResults.Results.Results.Contents[3].ItemSectionRenderer.Contents[0].ContinuationItemRenderer.ContinuationEndpoint.ContinuationCommand.Token
+        }
+
         continuationJson := pageLoadContinuation(token)
 
         var commentCounterJson CommentCounterJson
         err = json.Unmarshal([]byte(continuationJson), &commentCounterJson)
-        noCommentsStr := commentCounterJson.OnResponseReceivedEndpoints[0].ReloadContinuationItemsCommand.ContinuationItems[0].CommentsHeaderRenderer.CountText.Runs[0].Text
-        noCommentsStr = strings.ReplaceAll(noCommentsStr, ",", "")
+        numberCommentsStr := commentCounterJson.OnResponseReceivedEndpoints[0].ReloadContinuationItemsCommand.ContinuationItems[0].CommentsHeaderRenderer.CountText.Runs[0].Text
+        numberCommentsStr = strings.ReplaceAll(numberCommentsStr, ",", "")
 
-        comments64, err := strconv.ParseInt(noCommentsStr, 10, 0)
+        comments64, err := strconv.ParseInt(numberCommentsStr, 10, 0)
         if err != nil { panic(err) }
 
         comments = int(comments64)
