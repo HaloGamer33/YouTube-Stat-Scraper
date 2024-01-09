@@ -13,17 +13,17 @@ Go application that collects & downloads information about a YouTube video. It u
 ## Usage
 
 1. Run the application.
-2. When prompted, enter the URL of the YouTube video you want to analyze.
-3. The application will write the video's statistics to a text file named "[Video Title] - Statistics.txt".
+2. Choose an option from the displayed menu.
+3. Follow the instructions shown on screen.
+4. The application will download the video statistics into the same folder that executable is, or in a folder depending on the option.
 
 ## Installation
 
-1. Clone the repository.
-2. Navigate to the project directory.
-3. Run `go build` to compile the application.
-4. Run the resulting executable.
+1. Go to the relases section.
+2. Download the executable corresponding to your OS.
+3. Run the executable from a terminal or double clicking if you are on windows.
 
-## Dependencies
+## Dependencies ( Only worry about this if you want to edit the source code )
 
 - Go
 - Colly
