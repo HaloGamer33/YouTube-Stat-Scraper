@@ -4,6 +4,10 @@
 
 Go application that collects & downloads information about a YouTube video. It uses the Colly library to scrape data from the video's webpage and parses JSON data embedded in the page's HTML.
 
+# ⚠️ Disclaimer
+
+The YouTube-Stat-Scraper is currently non-functional due to ongoing issues with its implementation. I am actively working on fixing the problems and improving the tool's quality. Stay tuned for updates in future releases!
+
 ## Features
 
 - Download description, title, view count, likes, upload date, author, video and channel ID, etc.
